@@ -7,7 +7,7 @@
 
 import UIKit
 
-class HomeController: UIViewController, UISearchBarDelegate {
+class HomeController: UIViewController, UISearchBarDelegate, StockManagerDelegate {
     
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var searchedCompanyName: UILabel!
@@ -20,6 +20,7 @@ class HomeController: UIViewController, UISearchBarDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        stockManager.delegate = self
         searchBar.delegate = self
     }
 
@@ -38,11 +39,15 @@ class HomeController: UIViewController, UISearchBarDelegate {
     }
     
     func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
-        
         if let symbol = searchBar.text {
             stockManager.fetchSymbol(symbol: symbol)
         }
- 
+    }
+    
+    func didUpdateStock(stock: StockModel) {
+        searchedCompanyName.text = "\(stock.company) (\(stock.symbol))"
+        searchedStockPrice.text = "\(stock.bid)"
+        print(stock.bid)
     }
 }
 

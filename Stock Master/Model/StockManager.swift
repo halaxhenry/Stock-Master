@@ -7,9 +7,15 @@
 
 import Foundation
 
+protocol StockManagerDelegate {
+    func didUpdateStock(stock: StockModel)
+}
+
 struct StockManager {
     
     let yahooFinanceURL = "https://yfapi.net/v6/finance/quote?region=US&lang=en&symbols="
+    
+    var delegate: StockManagerDelegate?
 
     func fetchSymbol(symbol: String){
         let urlString = "\(yahooFinanceURL)\(symbol)%2CBTC-USD%2CEURUSD%3DX"
@@ -42,12 +48,14 @@ struct StockManager {
 //                let dataString = String(data: safeData, encoding: .utf8)
 //                print(dataString!)
                 print(safeData)
-                parseJSON(stockData: safeData)
+                if let stock = parseJSON(stockData: safeData) {
+                    delegate?.didUpdateStock(stock: stock)
+                }
                 
             }
         }
         
-        func parseJSON(stockData: Data) {
+        func parseJSON(stockData: Data) -> StockModel? {
             let decoder = JSONDecoder()
             do {
                 let decodedData = try decoder.decode(QuoteParent.self, from: stockData)
@@ -56,9 +64,15 @@ struct StockManager {
                 let company = decodedData.quoteResponse.result![0].longName!
                 let symbol = decodedData.quoteResponse.result![0].symbol!
                 
+                let stock = StockModel(company: company, symbol: symbol, bid: bid)
+                
                 print("\(company) (\(symbol)) : \(bid)")
+                
+                return stock
+                
             } catch {
                 print(error)
+                return nil
             }
             
         }
